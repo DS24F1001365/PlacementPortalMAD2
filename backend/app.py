@@ -9,7 +9,7 @@ from flask import jsonify                                   #for converting pyth
 from flask_jwt_extended import JWTManager                   #for enabling flask to work with jwt tokens and functions
 from flask_jwt_extended import create_access_token, get_jwt_identity          
 
-from datetime import timedelta                              
+from datetime import timedelta, datetime
 
 from werkzeug.security import generate_password_hash, check_password_hash           #for verifying passwords since they're stored as hash
 
@@ -227,10 +227,27 @@ def admin_dashboard():
     user_id = get_jwt_identity()
 
     user = User.query.get(user_id)
+    
+    total_students = Student.query.count()
+    total_companies = Company.query.count()
+    total_drives = PlacementDrive.query.count()
+    total_applications = Application.query.count()
+    placed_students = Student.query.filter_by(is_placed=True).count()
+    pending_companies = Company.query.filter_by(approval_status="Pending").count()
+    pending_drives = PlacementDrive.query.filter_by(status="Pending").count()
 
     return jsonify({
         "success": True,
-        "message": "Welcome " + user.name
+        "message": "Welcome " + user.name,
+        "stats": {
+            "total_students": total_students,
+            "total_companies": total_companies,
+            "total_drives": total_drives,
+            "total_applications": total_applications,
+            "placed_students": placed_students,
+            "pending_companies": pending_companies,
+            "pending_drives": pending_drives
+        }
     })
 
 
@@ -259,6 +276,393 @@ def company_dashboard():
     return jsonify({
         "success": True,
         "message": "Welcome " + user.name
+    })
+
+
+# ----------------------
+# ADMIN COMPANY APIs
+# ----------------------
+
+@app.route('/api/admin/companies')
+@admin_required
+def get_companies():
+
+    companies = Company.query.all()
+    company_list = []
+    for company in companies:
+        company_list.append({
+            "id": company.id,
+            "name": company.user.name,
+            "email": company.user.email,
+            "hr_name": company.hr_name,
+            "hr_email": company.hr_email,
+            "approval_status": company.approval_status,
+            "blacklist_status": company.user.blacklist_status
+        })
+
+    return jsonify({
+        "success": True,
+        "companies": company_list
+    })
+
+
+@app.route('/api/admin/company/approve/<int:company_id>', methods=['PUT'])
+@admin_required
+def approve_company(company_id):
+    company = Company.query.get(company_id)
+    if not company:
+        return jsonify({
+            "success": False,
+            "message": "Company not found"
+        }), 404
+
+    company.approval_status = "Approved"
+    db.session.commit()
+    return jsonify({
+        "success": True,
+        "message": "Company approved successfully"
+    })
+
+@app.route('/api/admin/company/reject/<int:company_id>', methods=['PUT'])
+@admin_required
+def reject_company(company_id):
+    company = Company.query.get(company_id)
+    if not company:
+        return jsonify({
+            "success": False,
+            "message": "Company not found"
+        }), 404
+
+    company.approval_status = "Rejected"
+    db.session.commit()
+    return jsonify({
+        "success": True,
+        "message": "Company rejected successfully"
+    })
+
+@app.route('/api/admin/company/blacklist/<int:company_id>', methods=['PUT'])
+@admin_required
+def blacklist_company(company_id):
+    company = Company.query.get(company_id)
+    if not company:
+        return jsonify({
+            "success": False,
+            "message": "Company not found"
+        }), 404
+
+    company.user.blacklist_status = True
+    for drive in company.drives:
+        drive.status = "Cancelled"
+    db.session.commit()
+    return jsonify({
+        "success": True,
+        "message": "Company blacklisted successfully"
+    })
+
+@app.route('/api/admin/company/<int:company_id>')
+@admin_required
+def view_company(company_id):
+    company = Company.query.get(company_id)
+    if not company:
+        return jsonify({
+            "success": False,
+            "message": "Company not found"
+        }), 404
+
+    return jsonify({
+        "success": True,
+        "company": {
+            "name": company.user.name,
+            "email": company.user.email,
+            "hr_name": company.hr_name,
+            "hr_email": company.hr_email,
+            "hr_contact": company.hr_contact,
+            "website": company.website,
+            "description": company.description,
+            "approval_status": company.approval_status,
+            "blacklist_status": company.user.blacklist_status
+        }
+    })
+
+# ----------------------
+# ADMIN STUDENT APIs
+# ----------------------
+
+@app.route('/api/admin/students')
+@admin_required
+def get_students():
+    students = Student.query.all()
+    student_list = []
+    for student in students:
+        student_list.append({
+            "id": student.id,
+            "name": student.user.name,
+            "email": student.user.email,
+            "phone": student.phone,
+            "branch": student.branch,
+            "is_active": student.is_active,
+            "is_placed": student.is_placed,
+            "blacklist_status": student.user.blacklist_status
+        })
+
+    return jsonify({
+        "success": True,
+        "students": student_list
+    })
+
+@app.route('/api/admin/student/<int:student_id>')
+@admin_required
+def view_student(student_id):
+    student = Student.query.get(student_id)
+    if not student:
+        return jsonify({
+            "success": False,
+            "message": "Student not found"
+        }), 404
+
+    return jsonify({
+        "success": True,
+        "student": {
+            "name": student.user.name,
+            "email": student.user.email,
+            "phone": student.phone,
+            "branch": student.branch,
+            "year": student.year,
+            "cgpa": student.cgpa,
+            "linkedin": student.linkedin,
+            "github": student.github,
+            "skills": student.skills,
+            "resume_path": student.resume_path,
+            "is_active": student.is_active,
+            "is_placed": student.is_placed,
+            "blacklist_status": student.user.blacklist_status
+        }
+    })
+
+@app.route('/api/admin/student/toggle-active/<int:student_id>', methods=['PUT'])
+@admin_required
+def toggle_student_active(student_id):
+    student = Student.query.get(student_id)
+    if not student:
+        return jsonify({
+            "success": False,
+            "message": "Student not found"
+        }), 404
+
+    student.is_active = not student.is_active
+    db.session.commit()
+    return jsonify({
+        "success": True,
+        "message": "Student status updated"
+    })
+
+@app.route('/api/admin/student/toggle-blacklist/<int:student_id>', methods=['PUT'])
+@admin_required
+def toggle_student_blacklist(student_id):
+    student = Student.query.get(student_id)
+    if not student:
+        return jsonify({
+            "success": False,
+            "message": "Student not found"
+        }), 404
+
+    student.user.blacklist_status = not student.user.blacklist_status
+    db.session.commit()
+    return jsonify({
+        "success": True,
+        "message": "Blacklist status updated"
+    })
+
+# ----------------------
+# ADMIN DRIVE APIs
+# ----------------------
+
+@app.route('/api/admin/drives')
+@admin_required
+def get_drives():
+    drives = PlacementDrive.query.all()
+    drive_list = []
+
+    for drive in drives:
+        drive_list.append({
+            "id": drive.id,
+            "title": drive.job_title,
+            "specialization": drive.specialization,
+            "company": drive.company.user.name,
+            "deadline": drive.deadline.strftime("%Y-%m-%d"),
+            "status": drive.status
+        })
+
+    return jsonify({
+        "success": True,
+        "drives": drive_list
+    })
+
+@app.route('/api/admin/drive/approve/<int:drive_id>', methods=['PUT'])
+@admin_required
+def approve_drive(drive_id):
+    drive = PlacementDrive.query.get(drive_id)
+    if not drive:
+        return jsonify({
+            "success": False,
+            "message": "Drive not found"
+        }), 404
+
+    drive.status = "Approved"
+    db.session.commit()
+    return jsonify({
+        "success": True,
+        "message": "Drive approved successfully"
+    })
+
+@app.route('/api/admin/drive/reject/<int:drive_id>', methods=['PUT'])
+@admin_required
+def reject_drive(drive_id):
+    drive = PlacementDrive.query.get(drive_id)
+    if not drive:
+        return jsonify({
+            "success": False,
+            "message": "Drive not found"
+        }), 404
+
+    drive.status = "Rejected"
+    db.session.commit()
+    return jsonify({
+       "success": True,
+        "message": "Drive rejected successfully"
+    })
+
+@app.route('/api/admin/drive/<int:drive_id>')
+@admin_required
+def view_drive(drive_id):
+    drive = PlacementDrive.query.get(drive_id)
+    if not drive:
+        return jsonify({
+            "success": False,
+            "message": "Drive not found"
+        }), 404
+
+    return jsonify({
+        "success": True,
+        "drive": {
+            "title": drive.job_title,
+            "specialization": drive.specialization,
+            "description": drive.description,
+            "company": drive.company.user.name,
+            "eligible_branches": drive.eligible_branches,
+            "minimum_cgpa": drive.minimum_cgpa,
+            "eligible_year": drive.eligible_year,
+            "deadline": drive.deadline.strftime("%Y-%m-%d"),
+            "status": drive.status
+        }
+
+    })
+
+
+# ----------------------
+# ADMIN APPLICATION, PLACEMENT AND STATS APIs
+# ----------------------
+
+@app.route('/api/admin/applications')
+@admin_required
+def get_applications():
+    applications = Application.query.all()
+    application_list = []
+
+    for application in applications:
+        student = application.student
+        drive = application.drive
+
+        if student.user.blacklist_status:
+            student_status = "Blacklisted"
+        elif not student.is_active:
+            student_status = "Inactive"
+        elif student.is_placed:
+            student_status = "Placed"
+        else:
+            student_status = "Active"
+
+        application_list.append({
+            "id": application.id,
+            "student_name": student.user.name,
+            "drive_id": drive.id,
+            "title": drive.job_title,
+            "company_name": drive.company.user.name,
+            "application_status": application.application_status,
+            "offer_status": application.offer_status,
+            "student_status": student_status
+        })
+
+    return jsonify({
+        "success": True,
+        "applications": application_list
+    })
+
+@app.route('/api/admin/placement-history')
+@admin_required
+def placement_history():
+    placements = Application.query.filter_by(
+        application_status="Selected",
+        offer_status="Accepted"
+    ).all()
+
+    placement_list = []
+    for application in placements:
+        placement_list.append({
+            "id": application.id,
+            "student_name": application.student.user.name,
+            "company_name": application.drive.company.user.name,
+            "drive_title": application.drive.job_title,
+            "branch": application.student.branch,
+            "cgpa": application.student.cgpa,
+            "applied_on": application.applied_on.strftime("%Y-%m-%d")
+        })
+
+    return jsonify({
+        "success": True,
+        "placements": placement_list
+    })
+
+@app.route('/api/admin/statistics')
+@admin_required
+def admin_statistics():
+
+    companies = Company.query.all()
+    company_names = []
+    applied_counts = []
+    selected_counts = []
+    accepted_counts = []
+
+    for company in companies:
+        company_names.append(company.user.name)
+
+        applied = Application.query.join(PlacementDrive).filter(
+            PlacementDrive.company_id == company.id
+        ).count()
+
+        selected = Application.query.join(PlacementDrive).filter(
+            PlacementDrive.company_id == company.id,
+            Application.application_status == "Selected"
+        ).count()
+
+        accepted = Application.query.join(PlacementDrive).filter(
+            PlacementDrive.company_id == company.id,
+            Application.application_status == "Selected",
+            Application.offer_status == "Accepted"
+        ).count()
+
+        applied_counts.append(applied)
+        selected_counts.append(selected)
+        accepted_counts.append(accepted)
+
+    return jsonify({
+        "success": True,
+        "statistics": {
+            "companies": company_names,
+            "applied": applied_counts,
+            "selected": selected_counts,
+            "accepted": accepted_counts
+        }
     })
 
 # ----------------------

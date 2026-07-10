@@ -76,7 +76,7 @@ class PlacementDrive(db.Model):
     eligible_year = db.Column(db.Integer)
     deadline = db.Column(db.Date, nullable=False)
 
-    status = db.Column(db.String(20), default="Pending")#Pending/Approved/Rejected/Cancelled
+    status = db.Column(db.String(20), default="Pending")#Pending/Approved/Rejected/Cancelled/Closed
 
     applications = db.relationship('Application', backref='drive', cascade="all, delete", lazy=True)
 
@@ -102,7 +102,7 @@ class Application(db.Model):
 
     applied_on = db.Column(db.DateTime, default=datetime.utcnow)
     application_status = db.Column(db.String(20), default="Applied")  # Applied/Shortlisted/Selected/Rejected
-    offer_status = db.Column(db.String(20), default="Pending")# Pending / Accepted / Declined
+    offer_status = db.Column(db.String(20), default="NA")# NA/ Pending / Accepted / Declined
 
     # Prevent duplicate application
     __table_args__ = (

@@ -6,7 +6,15 @@ import CompanyRegister from '../views/CompanyRegister.vue'
 import CompanyDashboard from '../views/CompanyDashboard.vue'
 import StudentDashboard from '../views/StudentDashboard.vue'
 import AdminDashboard from '../views/AdminDashboard.vue'
-
+import AdminCompanies from "../views/AdminCompanies.vue"
+import AdminCompanyProfile from "../views/AdminCompanyProfile.vue"
+import AdminStudents from "../views/AdminStudents.vue"
+import AdminStudentProfile from "../views/AdminStudentProfile.vue"
+import AdminDrives from "../views/AdminDrives.vue"
+import AdminDriveDetails from "../views/AdminDriveDetails.vue"
+import AdminApplications from "../views/AdminApplications.vue"
+import AdminPlacementHistory from "../views/AdminPlacementHistory.vue"
+import AdminStatistics from "../views/AdminStatistics.vue"
 
 const routes = [
     {
@@ -47,6 +55,78 @@ const routes = [
         meta: {
             requiresAuth: true,
             role: "company"
+        }
+    },
+    {
+        path: "/admin/companies",
+        component: AdminCompanies,
+        meta: {
+        requiresAuth: true,
+        role: "admin"
+        }
+    },
+    {
+        path: "/admin/company/:id",
+        component: AdminCompanyProfile,
+        meta: {
+        requiresAuth: true,
+        role: "admin"
+        }
+    },
+    {
+        path: "/admin/students",
+        component: AdminStudents,
+        meta: {
+        requiresAuth: true,
+        role: "admin"
+        }
+    },
+    {
+        path: "/admin/student/:id",
+        component: AdminStudentProfile,
+        meta: {
+        requiresAuth: true,
+        role: "admin"
+        }
+    },
+    {
+        path: "/admin/drives",
+        component: AdminDrives,
+        meta: {
+        requiresAuth: true,
+        role: "admin"
+        }
+    },
+    {
+        path: "/admin/drive/:id",
+        component: AdminDriveDetails,
+        meta: {
+        requiresAuth: true,
+        role: "admin"
+        }
+    },
+    {
+        path: "/admin/applications",
+        component: AdminApplications,
+        meta: {
+        requiresAuth: true,
+        role: "admin"
+        }
+    },
+    {
+        path: "/admin/placement-history",
+        component: AdminPlacementHistory,
+        meta: {
+        requiresAuth: true,
+        role: "admin"
+        }
+    },
+    {
+        path: "/admin/statistics",
+        component: AdminStatistics,
+        meta: {
+        requiresAuth: true,
+        role: "admin"
         }
     }
 
