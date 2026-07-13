@@ -37,3 +37,17 @@ frontend/node_modules/
 # -------------------------
 .DS_Store
 Thumbs.db
+
+# -------------------------
+# Uploaded resumes
+# -------------------------
+backend/uploads/*
+!backend/uploads/resumes/
+backend/uploads/resumes/*
+!backend/uploads/resumes/.gitkeep
+
+# -------------------------
+# Python cache
+# -------------------------
+backend/__pycache__/
+*.pyc

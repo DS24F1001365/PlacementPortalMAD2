@@ -19,7 +19,14 @@
             <p><b>Skills:</b> {{ student.skills }}</p>
             <p><b>LinkedIn:</b> {{ student.linkedin }}</p>
             <p><b>GitHub:</b> {{ student.github }}</p>
-            <p><b>Resume:</b> {{ student.resume_path }}</p>
+            <a
+                v-if="student.resume_path"
+                :href="'http://127.0.0.1:5000/'+student.resume_path"
+                target="_blank"
+                class="btn btn-primary"
+            >
+                View Resume
+            </a>
         </div>
         <br>
         <router-link class="btn btn-primary" to="/admin/students">

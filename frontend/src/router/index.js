@@ -3,9 +3,11 @@ import { createRouter, createWebHistory } from 'vue-router'
 import Login from '../views/Login.vue'
 import StudentRegister from '../views/StudentRegister.vue'
 import CompanyRegister from '../views/CompanyRegister.vue'
+
 import CompanyDashboard from '../views/CompanyDashboard.vue'
 import StudentDashboard from '../views/StudentDashboard.vue'
 import AdminDashboard from '../views/AdminDashboard.vue'
+
 import AdminCompanies from "../views/AdminCompanies.vue"
 import AdminCompanyProfile from "../views/AdminCompanyProfile.vue"
 import AdminStudents from "../views/AdminStudents.vue"
@@ -15,6 +17,19 @@ import AdminDriveDetails from "../views/AdminDriveDetails.vue"
 import AdminApplications from "../views/AdminApplications.vue"
 import AdminPlacementHistory from "../views/AdminPlacementHistory.vue"
 import AdminStatistics from "../views/AdminStatistics.vue"
+
+import CompanyProfile from "../views/CompanyProfile.vue"
+import CompanyEditProfile from "../views/CompanyEditProfile.vue"
+import CompanyDrives from "../views/CompanyDrives.vue"
+import CompanyEditDrive from "../views/CompanyEditDrive.vue"
+import CompanyApplicants from "../views/CompanyApplicants.vue"
+import CompanyStudentProfile from "../views/CompanyStudentProfile.vue"
+
+import StudentProfile from "../views/StudentProfile.vue"
+import StudentEditProfile from "../views/StudentEditProfile.vue"
+import StudentDrives from "../views/StudentDrives.vue"
+import StudentApplications from "../views/StudentApplications.vue"
+import StudentOffers from "../views/StudentOffers.vue"
 
 const routes = [
     {
@@ -129,7 +144,95 @@ const routes = [
         role: "admin"
         }
     }
-
+    ,
+    {
+        path: "/company/profile",
+        component: CompanyProfile,
+        meta: {
+        requiresAuth: true,
+        role: "company"
+        }
+    },
+    {
+        path: "/company/profile/edit",
+        component: CompanyEditProfile,
+        meta: {
+        requiresAuth: true,
+        role: "company"
+        }
+    },
+    {
+        path: "/company/drives",
+        component: CompanyDrives,
+        meta: {
+        requiresAuth: true,
+        role: "company"
+        }
+    },
+    {
+        path: "/company/drive/edit/:id",
+        component: CompanyEditDrive,
+        meta: {
+        requiresAuth: true,
+        role: "company"
+        }
+    },
+    {
+        path:"/company/drive/:id/applicants",
+        component:CompanyApplicants,
+        meta:{
+            requiresAuth:true,
+            role:"company"
+        }
+    },
+    {
+        path:"/company/application/:id/student",
+        component:CompanyStudentProfile,
+        meta:{
+            requiresAuth:true,
+            role:"company"
+        }
+    },
+    {
+        path: "/student/profile",
+        component: StudentProfile,
+        meta:{
+            requiresAuth:true,
+            role:"student"
+        }
+    },
+    {
+        path: "/student/profile/edit",
+        component: StudentEditProfile,
+        meta:{
+            requiresAuth:true,
+            role:"student"
+        }
+    },
+    {
+        path:"/student/drives",
+        component:StudentDrives,
+        meta:{
+            requiresAuth:true,
+            role:"student"
+        }
+    },
+    {
+        path:"/student/applications",
+        component:StudentApplications,
+        meta:{
+            requiresAuth:true,
+            role:"student"
+        }
+    },
+    {
+        path:"/student/offers",
+        component:StudentOffers,
+        meta:{
+            requiresAuth:true,
+            role:"student"
+        }
+    }
 ]
 
 const router = createRouter({
