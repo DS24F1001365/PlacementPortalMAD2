@@ -1,4 +1,6 @@
 <template>
+    <Navbar role="company"/>
+    
     <div class="container mt-5">
 
         <div v-if="success">
@@ -143,6 +145,7 @@
 </template>
 
 <script>
+import Navbar from "../components/Navbar.vue"
 
 export default {
 
@@ -160,6 +163,10 @@ export default {
             minimum_cgpa: "",
             deadline: ""
         }
+    },
+
+    components:{
+        Navbar,
     },
 
     mounted() {

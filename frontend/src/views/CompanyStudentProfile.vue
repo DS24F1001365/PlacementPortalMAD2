@@ -1,4 +1,5 @@
 <template>
+    <Navbar role="company"/>
     <div class="container mt-5">
         
         <div v-if="success">
@@ -17,7 +18,7 @@
                 <p><b>GitHub:</b> {{ student.github }}</p>
                 <a
                     v-if="student.resume_path"
-                    :href="'http://127.0.0.1:5000/'+student.resume_path"
+                    :href="'http://127.0.0.1:5000/uploads/resumes/'+student.resume_path"
                     target="_blank"
                     class="btn btn-primary"
                 >
@@ -36,6 +37,7 @@
 </template>
 
 <script>
+import Navbar from "../components/Navbar.vue"
 
 export default{
 
@@ -45,6 +47,10 @@ export default{
             message:"",
             student:{}
         }
+    },
+
+    components:{
+        Navbar,
     },
 
     mounted(){

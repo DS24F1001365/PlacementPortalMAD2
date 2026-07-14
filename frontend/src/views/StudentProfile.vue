@@ -1,5 +1,5 @@
 <template>
-
+    <Navbar role="student"/>
 <div class="container mt-5">
 
     <div v-if="success">
@@ -72,6 +72,7 @@
 </template>
 
 <script>
+import Navbar from "../components/Navbar.vue"
 
 export default{
 
@@ -87,6 +88,10 @@ export default{
 
         }
 
+    },
+
+    components:{
+        Navbar,
     },
 
     mounted(){

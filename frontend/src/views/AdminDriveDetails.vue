@@ -1,4 +1,6 @@
 <template>
+    <Navbar role="admin"/>
+    
     <div v-if="errorMessage" class="alert alert-danger">
         {{ errorMessage }}
     </div>
@@ -29,6 +31,7 @@
 </template>
 
 <script>
+import Navbar from "../components/Navbar.vue"
 
 export default {
 
@@ -38,6 +41,11 @@ export default {
             errorMessage: ""
         }
     },
+
+    components:{
+        Navbar,
+    },
+    
 
     async mounted() {
         const response = await fetch(

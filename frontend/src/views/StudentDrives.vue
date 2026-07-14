@@ -1,13 +1,11 @@
 <template>
+    <Navbar role="student"/>
 <div class="container mt-5">
 
     <div v-if="success">
         <h2 class="text-center mb-4">
             Available Placement Drives
         </h2>
-        <div v-if="message" class="alert alert-danger">
-            {{ message }}
-        </div>
 
         <table class="table table-bordered table-striped">
             <thead>
@@ -51,7 +49,9 @@
 
 </template>
 
+
 <script>
+import Navbar from "../components/Navbar.vue"
 
 export default{
 
@@ -63,6 +63,10 @@ export default{
             is_placed:false,
             is_active:true
         }
+    },
+
+    components:{
+        Navbar,
     },
 
     mounted(){
@@ -83,20 +87,18 @@ export default{
 
             const result=await response.json()
             if(result.success){
-                this.success=true
-                this.drives=result.drives
                 this.is_active=result.is_active
                 this.is_placed=result.is_placed
                 if (this.is_placed){
-                    this.success=false,
                     this.message="Placed Students cannot apply for drives"
                     return
                 }
                 if (!this.is_active){
-                    this.success=false,
                     this.message="Inactive Students cannot apply for drives"
                     return
                 }
+                this.success=true
+                this.drives=result.drives
             }
 
             else{

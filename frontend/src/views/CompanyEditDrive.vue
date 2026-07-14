@@ -1,4 +1,5 @@
 <template>
+    <Navbar role="company"/>
 
     <div class="container mt-5">
 
@@ -127,6 +128,7 @@
 </template>
 
 <script>
+import Navbar from "../components/Navbar.vue"
 
 export default{
 
@@ -137,6 +139,10 @@ export default{
             today:new Date().toISOString().split("T")[0],
             drive:{}
         }
+    },
+
+    components:{
+        Navbar,
     },
 
     mounted(){

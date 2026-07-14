@@ -1,4 +1,6 @@
 <template>
+    <Navbar role="company"/>
+    
     <div class="container mt-5">
 
         <h2 class="text-center mb-4">
@@ -132,117 +134,71 @@
 </template>
 
 <script>
+import Navbar from "../components/Navbar.vue"
 
 export default{
 
     data(){
 
         return{
-
             success:false,
-
             message:"",
-
             driveTitle:"",
-
             applications:[]
-
         }
-
     },
 
+    components:{
+        Navbar,
+    },
 
     mounted(){
-
         this.loadApplicants()
-
     },
-
 
     methods:{
 
-
         async loadApplicants(){
-
             const response=await fetch(
-
                 "http://127.0.0.1:5000/api/company/drive/"+this.$route.params.id+"/applicants",
-
                 {
-
                     headers:{
-
                         "Authorization":"Bearer "+localStorage.getItem("token")
-
                     }
-
                 }
-
             )
 
-
             const result=await response.json()
-
-
             if(result.success){
-
                 this.success=true
-
                 this.driveTitle=result.drive_title
-
                 this.applications=result.applicants
-
             }
-
             else{
-
                 this.message=result.message
-
             }
-
         },
 
-
-
         async updateStatus(applicationId,status){
-
             const response=await fetch(
-
                 "http://127.0.0.1:5000/api/company/update-application-status/"+applicationId,
-
                 {
-
                     method:"PUT",
-
                     headers:{
-
                         "Content-Type":"application/json",
-
                         "Authorization":"Bearer "+localStorage.getItem("token")
-
                     },
-
                     body:JSON.stringify({
-
                         application_status:status
-
                     })
-
                 }
-
             )
 
-
             const result=await response.json()
-
             alert(result.message)
-
             this.loadApplicants()
-
         }
-
     }
-
 }
 
 </script>

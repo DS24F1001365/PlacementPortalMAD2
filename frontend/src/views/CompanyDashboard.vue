@@ -1,4 +1,6 @@
 <template>
+    <Navbar role="company"/>
+
     <div class="container mt-5">
 
         <div v-if="success">
@@ -66,17 +68,6 @@
 
             </table>
 
-            <router-link class="btn btn-primary m-2" to="/company/drives">
-                My Drives
-            </router-link>
-            <router-link class="btn btn-primary m-2" to="/company/profile">
-                Profile
-            </router-link>
-            <br>
-            <button class="btn btn-danger mt-3" @click="logout">
-                Logout
-            </button>
-
         </div>
 
 
@@ -90,6 +81,7 @@
 </template>
 
 <script>
+import Navbar from "../components/Navbar.vue"
 
 export default {
 
@@ -100,6 +92,10 @@ export default {
             stats: {},
             pendingDrives: []
         }
+    },
+
+    components:{
+        Navbar,
     },
 
     mounted() {

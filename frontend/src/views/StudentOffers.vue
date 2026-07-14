@@ -1,5 +1,5 @@
 <template>
-
+    <Navbar role="student"/>
 <div class="container mt-5">
 
     <h2 class="text-center mb-4">
@@ -130,6 +130,7 @@
 </template>
 
 <script>
+import Navbar from "../components/Navbar.vue"
 
 export default{
 
@@ -145,6 +146,10 @@ export default{
 
         }
 
+    },
+
+    components:{
+        Navbar,
     },
 
     mounted(){

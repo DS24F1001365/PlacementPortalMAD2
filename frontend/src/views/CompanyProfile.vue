@@ -1,4 +1,6 @@
 <template>
+    <Navbar role="company"/>
+    
     <div class="container mt-5">
 
         <div v-if="success">
@@ -47,6 +49,7 @@
 
 
 <script>
+import Navbar from "../components/Navbar.vue"
 
 export default {
 
@@ -56,6 +59,10 @@ export default {
             message: "",
             profile: {}
         }
+    },
+
+    components:{
+        Navbar,
     },
 
     mounted() {

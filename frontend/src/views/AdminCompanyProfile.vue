@@ -1,4 +1,6 @@
 <template>
+    <Navbar role="admin"/>
+    
     <div v-if="errorMessage" class="alert alert-danger">
         {{ errorMessage }}
     </div>
@@ -26,6 +28,7 @@
 </template>
 
 <script>
+import Navbar from "../components/Navbar.vue"
 
 export default {
 
@@ -36,6 +39,11 @@ export default {
         }
     },
 
+    components:{
+        Navbar,
+    },
+
+ 
     async mounted() {
         const response = await fetch(
             "http://127.0.0.1:5000/api/admin/company/" + this.$route.params.id,

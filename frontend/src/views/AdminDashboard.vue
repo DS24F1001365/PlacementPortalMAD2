@@ -1,4 +1,6 @@
 <template>
+    <Navbar role="admin"/>
+
     <div class="container mt-5">
 
         <h2 class="text-center mb-4">
@@ -58,38 +60,12 @@
 
         </div>
 
-        <hr>
-
-        <div class="text-center">
-            <router-link class="btn btn-primary m-2" to="/admin/companies">
-                Companies
-            </router-link>
-            <router-link class="btn btn-primary m-2" to="/admin/students">
-                Students
-            </router-link>
-            <router-link class="btn btn-primary m-2" to="/admin/drives">
-                Drives
-            </router-link>
-            <router-link class="btn btn-primary m-2" to="/admin/applications">
-                Applications
-            </router-link>
-            <router-link class="btn btn-primary m-2" to="/admin/placement-history">
-                Placement History
-            </router-link>
-            <router-link class="btn btn-primary m-2" to="/admin/statistics">
-                Statistics
-            </router-link>
-        </div>
-
-        <button class="btn btn-danger mt-4" @click="logout">
-            Logout
-        </button>
-
     </div>
 </template>
 
 
 <script>
+import Navbar from "../components/Navbar.vue"
 
 export default {
 
@@ -100,6 +76,11 @@ export default {
         }
     },
 
+    components:{
+        Navbar,
+    },
+
+ 
     mounted() {
         this.loadDashboard()
     },

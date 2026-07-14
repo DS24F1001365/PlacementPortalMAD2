@@ -1,4 +1,6 @@
 <template>
+    <Navbar role="admin"/>
+    
     <div class="container mt-5">
 
         <h2 class="text-center mb-4">
@@ -61,6 +63,7 @@
 
 
 <script>
+import Navbar from "../components/Navbar.vue"
 
 export default {
 
@@ -69,6 +72,10 @@ export default {
             students: [],
             searchText: ""
         }
+    },
+
+    components:{
+        Navbar,
     },
 
     computed: {
