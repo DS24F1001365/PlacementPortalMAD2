@@ -321,10 +321,20 @@ def company_dashboard():
         status="Approved"
         ).count()
     total_applicants = Application.query.join(PlacementDrive).filter(PlacementDrive.company_id == company.id).count()
-    pending_applications = Application.query.join(PlacementDrive).filter(
-        PlacementDrive.company_id == company.id,
-        Application.application_status == "Applied"
-        ).count()
+    pending_applications = (
+        Application.query
+        .join(Student, Application.student_id == Student.id)
+        .join(User, Student.user_id == User.id)
+        .join(PlacementDrive, Application.drive_id == PlacementDrive.id)
+        .filter(
+            PlacementDrive.company_id == company.id,
+            Application.application_status == "Applied",
+            Student.is_active == True,
+            Student.is_placed == False,
+            User.blacklist_status == False
+        )
+        .count()
+    )
     selected_students = Application.query.join(PlacementDrive).filter(
         PlacementDrive.company_id == company.id,
         Application.application_status == "Selected"
@@ -334,7 +344,18 @@ def company_dashboard():
     pending_drive_list = []
 
     for drive in company_drives:
-        count = Application.query.filter_by(drive_id=drive.id, application_status="Applied").count()
+        count = (
+            Application.query
+            .join(Student, Application.student_id == Student.id)
+            .join(User, Student.user_id == User.id)
+            .filter(
+                Application.drive_id == drive.id,
+                Application.application_status == "Applied",
+                Student.is_active == True,
+                Student.is_placed == False,
+                User.blacklist_status == False
+                ).count()
+            )
         if count > 0:
             pending_drive_list.append({
                 "drive_id": drive.id,
