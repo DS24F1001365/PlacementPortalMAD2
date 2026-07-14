@@ -15,21 +15,39 @@ from werkzeug.security import generate_password_hash, check_password_hash       
 
 import os
 from werkzeug.utils import secure_filename                  #for resume file naming
-from flask import send_from_directory                       #for viewing resumes
+from flask import send_from_directory                       #for viewing resumes and CSVs
 
 from auth import admin_required
 from auth import student_required
 from auth import company_required
 
+from flask_caching import Cache                             #for redis caching
+from cache_helpers import company_dashboard_cache_key
+from cache_helpers import  student_dashboard_cache_key
+
+from celery.result import AsyncResult                       #for csv export backend job
+from celery_app import export_student_applications
+
+from config import Config
+
+
 app = Flask(__name__)
+cache = Cache()
 
 CORS(app)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///ppa.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config.from_object(Config)
 
-app.config['JWT_SECRET_KEY'] = 'PPA_MAD2_SECRET_KEY'
-app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(days=1)
+#app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///ppa.db'
+#app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+#app.config['JWT_SECRET_KEY'] = 'PPA_MAD2_SECRET_KEY'
+#app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(days=1)
+
+#app.config["CACHE_TYPE"] = "RedisCache"
+#app.config["CACHE_REDIS_HOST"] = "localhost"
+#app.config["CACHE_REDIS_PORT"] = 6379
+#app.config["CACHE_DEFAULT_TIMEOUT"] = 60
 
 UPLOAD_FOLDER = os.path.join(app.root_path,"uploads","resumes")
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -38,6 +56,8 @@ app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 jwt = JWTManager(app)
 
 db.init_app(app)
+cache.init_app(app)
+print(cache.cache)
 
 with app.app_context():
     db.create_all()
@@ -224,8 +244,10 @@ def login():
 # ----------------------
 
 @app.route('/api/admin/dashboard')
+@cache.cached(timeout=60)
 @admin_required
 def admin_dashboard():
+    print("ADMIN DASHBOARD EXECUTED")
 
     user_id = get_jwt_identity()
 
@@ -255,9 +277,10 @@ def admin_dashboard():
 
 
 @app.route('/api/student/dashboard', methods=['GET'])
+@cache.cached(timeout=60,make_cache_key=student_dashboard_cache_key)
 @student_required
 def student_dashboard():
-
+    print("STUDENT")
     user_id = get_jwt_identity()
     student = Student.query.filter_by(user_id=user_id).first()
     total_applications = Application.query.filter_by(student_id=student.id).count()
@@ -285,9 +308,10 @@ def student_dashboard():
 
 
 @app.route('/api/company/dashboard')
+@cache.cached(timeout=60, make_cache_key=company_dashboard_cache_key)
 @company_required
 def company_dashboard():
-
+    print("COMPANY")
     user_id = get_jwt_identity()
     company = Company.query.filter_by(user_id=user_id).first()
 
@@ -677,6 +701,7 @@ def placement_history():
     })
 
 @app.route('/api/admin/statistics')
+@cache.cached(timeout=60)
 @admin_required
 def admin_statistics():
 
@@ -1503,6 +1528,88 @@ def update_offer_status(application_id):
         "success": True,
         "message": "Offer accepted successfully."
     })
+
+# ----------------------
+# CELERY BACKEND JOBS
+# ----------------------
+
+# ----------------------
+# CELERY BACKEND JOBS TESTING APIs
+# ----------------------
+from celery_app import hello
+@app.route("/celery-test")
+def celery_test():
+    hello.delay()
+    return "Task sent to Celery!"
+
+from mail_utils import send_email
+@app.route("/mail-test")
+def mail_test():
+
+    send_email(
+        "student@example.com",
+        "MailHog Test",
+        "<h2>Hello from Placement Portal</h2>"
+    )
+
+    return "Mail Sent!"
+
+from celery_app import send_daily_reminders
+@app.route("/daily-reminder-test")
+def daily_reminder_test():
+    task = send_daily_reminders.delay()
+    return jsonify({
+        "success": True,
+        "task_id": task.id
+    })
+
+from celery_app import send_monthly_report
+@app.route("/monthly-report-test")
+def monthly_report_test():
+    task = send_monthly_report.delay()
+    return jsonify({
+        "success":True,
+        "task_id":task.id
+    })
+
+# ----------------------
+# CSV EXPORT
+# ----------------------
+@app.route("/api/student/export-applications", methods=["POST"])
+@student_required
+def export_applications():
+    user_id = get_jwt_identity()
+    student = Student.query.filter_by(
+        user_id=user_id
+    ).first()
+
+    task = export_student_applications.delay(student.id)
+    return jsonify({
+        "success": True,
+        "message": "Export started",
+        "task_id": task.id
+    })
+
+@app.route("/api/student/export-status/<task_id>")
+@student_required
+def export_status(task_id):
+    task = AsyncResult(
+        task_id,
+        app=export_student_applications.app
+    )
+    response = {"state": task.state}
+    if task.state == "SUCCESS":
+        response["filename"] = task.result
+    return jsonify(response)
+
+@app.route("/api/student/download-export/<filename>")
+@student_required
+def download_export(filename):
+    return send_from_directory(
+        "exports",
+        filename,
+        as_attachment=True
+    )
 
 # ----------------------
 # MAIN

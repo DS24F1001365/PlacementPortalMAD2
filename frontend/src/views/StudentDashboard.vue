@@ -46,6 +46,16 @@
                 Offers
             </router-link>
             <br>
+                <div class="mt-4">
+                <button class="btn btn-success" @click="exportApplications" :disabled="exporting">
+                    {{ exporting ? "Generating CSV..." : "Export Applications CSV" }}
+                </button>
+                <a v-if="downloadUrl" class="btn btn-primary ms-3" @click="downloadCSV">
+                    Download CSV
+                </a>
+
+            </div>
+            <br>
             <button class="btn btn-danger mt-3" @click="logout">
                 Logout
             </button>
@@ -70,7 +80,10 @@ export default {
             success: false,
             message: "",
             isPlaced: false,
-            stats: {}
+            stats: {},
+            exporting: false,
+            downloadUrl: "",
+            polling: null
         }
     },
 
@@ -100,13 +113,97 @@ export default {
             else {
                 this.success = false
                 this.message = result.message
-            }
-        },
+                }
+            },
 
         logout() {
             localStorage.clear()
             this.$router.push("/login")
+        },
+
+        async exportApplications(){
+
+            this.exporting = true
+            this.downloadUrl = ""
+
+            const response = await fetch(
+                "http://127.0.0.1:5000/api/student/export-applications",
+                {
+                    method:"POST",
+                    headers:{
+                        Authorization:"Bearer " + localStorage.getItem("token")
+                    }
+                }
+            )
+
+            const result = await response.json()
+            if(result.success){
+                this.pollExport(result.task_id)
+            }
+            else{
+                alert(result.message)
+                this.exporting=false
+            }
+        },
+
+        pollExport(taskId){
+
+            this.polling = setInterval(
+                async()=>{
+                    const response = await fetch(
+                        "http://127.0.0.1:5000/api/student/export-status/" + taskId,
+                        {
+                            headers:{
+                                Authorization:"Bearer " + localStorage.getItem("token")
+                            }
+                        }
+                    )
+
+                    const result = await response.json()
+                    if(result.state=="SUCCESS"){
+                        clearInterval(this.polling)
+                        this.exporting=false
+                        this.downloadUrl=
+                            "http://127.0.0.1:5000/api/student/download-export/"+ result.filename
+                    }
+                },3000)
+        },
+
+        async downloadCSV() {
+
+            const response = await fetch(
+                this.downloadUrl,
+                {
+                    headers: {
+                        Authorization: "Bearer " + localStorage.getItem("token")
+                    }
+                }
+            )
+
+            if (!response.ok) {
+                alert("Download failed.")
+                return
+            }
+
+            const blob = await response.blob()
+            const url = window.URL.createObjectURL(blob)
+            const link = document.createElement("a")
+            link.href = url
+            link.download = this.downloadUrl.split("/").pop()
+            document.body.appendChild(link)
+            link.click()
+            link.remove()
+            window.URL.revokeObjectURL(url)
+        },
+
+        beforeUnmount(){
+            if(this.polling){
+            clearInterval(this.polling)
+
+            }
         }
+
+
     }
 }
 

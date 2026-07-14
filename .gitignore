@@ -47,6 +47,19 @@ backend/uploads/resumes/*
 !backend/uploads/resumes/.gitkeep
 
 # -------------------------
+# CSV exports
+# -------------------------
+backend/exports/*
+!backend/exports/.gitkeep
+
+# -------------------------
+# Celery Beat
+# -------------------------
+celerybeat-schedule
+celerybeat-schedule-shm
+celerybeat-schedule-wal
+
+# -------------------------
 # Python cache
 # -------------------------
 backend/__pycache__/
